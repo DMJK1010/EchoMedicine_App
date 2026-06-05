@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/navigation_dashboard">
+
+    <!-- Main Bottom Navigation Destinations -->
+    <fragment
+        android:id="@+id/navigation_dashboard"
+        android:name="com.echomedicine.app.presentation.dashboard.DashboardFragment"
+        android:label="@string/nav_dashboard"
+        tools:layout="@layout/fragment_dashboard">
+
+        <action
+            android:id="@+id/action_dashboard_to_connection"
+            app:destination="@id/navigation_connection" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_schedule"
+        android:name="com.echomedicine.app.presentation.schedule.ScheduleFragment"
+        android:label="@string/nav_schedule"
+        tools:layout="@layout/fragment_schedule" />
+
+    <fragment
+        android:id="@+id/navigation_history"
+        android:name="com.echomedicine.app.presentation.history.HistoryFragment"
+        android:label="@string/nav_history"
+        tools:layout="@layout/fragment_history">
+
+        <action
+            android:id="@+id/action_history_to_detail"
+            app:destination="@id/navigation_history_detail" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/navigation_settings"
+        android:name="com.echomedicine.app.presentation.settings.SettingsFragment"
+        android:label="@string/nav_settings"
+        tools:layout="@layout/fragment_settings" />
+
+    <!-- Nested Destinations -->
+    <fragment
+        android:id="@+id/navigation_connection"
+        android:name="com.echomedicine.app.presentation.connection.ConnectionFragment"
+        android:label="@string/connection_status_label"
+        tools:layout="@layout/fragment_connection" />
+
+    <fragment
+        android:id="@+id/navigation_history_detail"
+        android:name="com.echomedicine.app.presentation.history.HistoryDetailFragment"
+        android:label="@string/history_detail_title">
+
+        <argument
+            android:name="date"
+            app:argType="long" />
+    </fragment>
+
+</navigation>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material 3 Light Theme Colors -->
+    <color name="md_theme_primary">#1B6B50</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#A5F2CE</color>
+    <color name="md_theme_onPrimaryContainer">#002115</color>
+
+    <color name="md_theme_secondary">#4D6357</color>
+    <color name="md_theme_onSecondary">#FFFFFF</color>
+    <color name="md_theme_secondaryContainer">#D0E8D9</color>
+    <color name="md_theme_onSecondaryContainer">#0B1F16</color>
+
+    <color name="md_theme_background">#FBFDF8</color>
+    <color name="md_theme_onBackground">#191C1A</color>
+    <color name="md_theme_surface">#FBFDF8</color>
+    <color name="md_theme_onSurface">#191C1A</color>
+    <color name="md_theme_surfaceVariant">#DCE5DC</color>
+    <color name="md_theme_onSurfaceVariant">#404943</color>
+
+    <!-- Slot Status Colors -->
+    <color name="slot_status_waiting">#F59E0B</color>
+    <color name="slot_status_taken">#10B981</color>
+    <color name="slot_status_missed">#EF4444</color>
+    <color name="slot_status_empty">#9CA3AF</color>
+</resources>

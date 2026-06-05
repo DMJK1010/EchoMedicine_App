@@ -123,6 +123,10 @@ class ConnectionFragment : Fragment() {
         binding.btnOpenBtSettings.setOnClickListener {
             openBluetoothSettings()
         }
+
+        binding.btnClose.setOnClickListener {
+            requireActivity().onBackPressedDispatcher.onBackPressed()
+        }
     }
 
     private fun observeViewModel() {

@@ -113,6 +113,18 @@
 
     </LinearLayout>
 
+    <!-- 닫기 버튼 (연결 없이 뒤로 가기) -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_close"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/close"
+        android:minHeight="48dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <!-- 재연결 버튼 -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_reconnect"
@@ -123,7 +135,7 @@
         android:text="@string/reconnect"
         android:minHeight="48dp"
         android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btn_close"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         tools:visibility="visible" />

@@ -23,7 +23,8 @@
 
     <!-- Foreground Service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
+        tools:targetApi="34" />
 
     <application
         android:name=".EchoMedicineApp"
@@ -32,8 +33,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.EchoMedicine"
-        tools:targetApi="34">
+        android:theme="@style/Theme.EchoMedicine">
 
         <activity
             android:name=".presentation.MainActivity"

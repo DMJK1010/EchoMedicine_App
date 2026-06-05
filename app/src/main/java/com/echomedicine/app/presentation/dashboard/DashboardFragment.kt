@@ -49,6 +49,20 @@ class DashboardFragment : Fragment() {
 
     private fun setupToolbar() {
         binding.toolbar.inflateMenu(R.menu.menu_dashboard)
+        binding.toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_connection_status -> {
+                    navigateToConnection()
+                    true
+                }
+                else -> false
+            }
+        }
+    }
+
+    private fun navigateToConnection() {
+        androidx.navigation.fragment.findNavController(this)
+            .navigate(R.id.action_dashboard_to_connection)
     }
 
     private fun observeState() {

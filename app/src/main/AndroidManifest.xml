@@ -23,8 +23,6 @@
 
     <!-- Foreground Service -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE"
-        tools:targetApi="34" />
 
     <application
         android:name=".EchoMedicineApp"
@@ -47,8 +45,7 @@
         <service
             android:name=".service.BluetoothForegroundService"
             android:enabled="true"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice" />
+            android:exported="false" />
 
     </application>
 

@@ -20,9 +20,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            // 릴리즈 서명을 위해 keystore 파일 생성 필요:
+            // keytool -genkey -v -keystore echo-medicine-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias echomedicine
+            // 생성 후 아래 경로와 비밀번호를 맞춰 설정
+            storeFile = file("${rootProject.projectDir}/echo-medicine-key.jks")
+            storePassword = "echomedicine"
+            keyAlias = "echomedicine"
+            keyPassword = "echomedicine"
+        }
+    }
+
     buildTypes {
+        debug {
+            // 디버그 빌드는 자동 서명됨
+        }
         release {
-            isMinifyEnabled = true
+            isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

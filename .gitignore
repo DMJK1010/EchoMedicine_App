@@ -9,3 +9,7 @@
 .cxx
 local.properties
 /app/build
+
+# Keystore (보안상 git에 포함하지 않음 - 배포 시에만 로컬에서 관리)
+*.jks
+*.keystore

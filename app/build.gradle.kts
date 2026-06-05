@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "com.echomedicine.app"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.echomedicine.app"

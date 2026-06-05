@@ -16,6 +16,7 @@ import com.echomedicine.app.databinding.ItemSlotCardBinding
 import com.echomedicine.app.domain.model.ConnectionState
 import com.echomedicine.app.domain.model.MedicineSlot
 import com.echomedicine.app.domain.model.SlotStatus
+import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -61,8 +62,7 @@ class DashboardFragment : Fragment() {
     }
 
     private fun navigateToConnection() {
-        androidx.navigation.fragment.findNavController(this)
-            .navigate(R.id.action_dashboard_to_connection)
+        findNavController().navigate(R.id.action_dashboard_to_connection)
     }
 
     private fun observeState() {

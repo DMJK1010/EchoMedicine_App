@@ -37,6 +37,7 @@ class MessageSyncManagerTest : DescribeSpec({
     lateinit var historyRepository: HistoryRepositoryImpl
     lateinit var scheduleRepository: ScheduleRepositoryImpl
     lateinit var appPreferences: AppPreferences
+    lateinit var alarmScheduler: com.echomedicine.app.alarm.MedicineAlarmScheduler
     lateinit var messageSyncManager: MessageSyncManager
     lateinit var incomingMessages: MutableSharedFlow<BluetoothMessage>
     lateinit var connectionState: MutableStateFlow<ConnectionState>
@@ -46,6 +47,7 @@ class MessageSyncManagerTest : DescribeSpec({
         historyRepository = mockk(relaxed = true)
         scheduleRepository = mockk(relaxed = true)
         appPreferences = mockk(relaxed = true)
+        alarmScheduler = mockk(relaxed = true)
 
         incomingMessages = MutableSharedFlow(extraBufferCapacity = 64)
         connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Disconnected)
@@ -74,6 +76,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -121,6 +124,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -148,6 +152,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -197,6 +202,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -243,6 +249,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -273,6 +280,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -309,6 +317,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -343,6 +352,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 
@@ -381,6 +391,7 @@ class MessageSyncManagerTest : DescribeSpec({
                     historyRepository = historyRepository,
                     scheduleRepository = scheduleRepository,
                     appPreferences = appPreferences,
+                    alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
 

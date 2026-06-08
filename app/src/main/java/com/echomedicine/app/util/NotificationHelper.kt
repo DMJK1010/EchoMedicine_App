@@ -104,11 +104,30 @@ class NotificationHelper @Inject constructor(
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle("💊 복용 시간입니다")
             .setContentText("$medicineName 복용 시간이에요!")
+            .setContentIntent(buildOpenAppIntent())
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setDefaults(NotificationCompat.DEFAULT_SOUND or NotificationCompat.DEFAULT_VIBRATE)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
+    }
+
+    /**
+     * 앱을 여는 PendingIntent를 생성한다 (알림 탭 시 MainActivity 실행).
+     */
+    private fun buildOpenAppIntent(): android.app.PendingIntent? {
+        val launchIntent = context.packageManager
+            .getLaunchIntentForPackage(context.packageName)
+            ?: return null
+        launchIntent.flags =
+            android.content.Intent.FLAG_ACTIVITY_NEW_TASK or
+            android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP
+        return android.app.PendingIntent.getActivity(
+            context,
+            0,
+            launchIntent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
+        )
     }
 
     /**

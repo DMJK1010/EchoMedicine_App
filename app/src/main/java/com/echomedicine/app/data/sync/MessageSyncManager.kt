@@ -45,6 +45,7 @@ class MessageSyncManager @Inject constructor(
     private val historyRepository: HistoryRepositoryImpl,
     private val scheduleRepository: ScheduleRepositoryImpl,
     private val appPreferences: AppPreferences,
+    private val alarmScheduler: com.echomedicine.app.alarm.MedicineAlarmScheduler,
     private val coroutineScope: CoroutineScope
 ) {
 
@@ -288,6 +289,8 @@ class MessageSyncManager @Inject constructor(
         if (schedules.size == EXPECTED_SLOT_COUNT) {
             // 3개 모두 수신 성공 → 캐시 갱신
             scheduleRepository.cacheSchedules(schedules)
+            // 자체 시간 알람도 최신 스케줄로 갱신
+            alarmScheduler.scheduleAll(schedules)
             val syncTime = System.currentTimeMillis()
             appPreferences.updateLastSyncTime(syncTime)
             Log.d(TAG, "Auto-sync successful: ${schedules.size} schedules cached at $syncTime")

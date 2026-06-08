@@ -66,6 +66,15 @@ class SettingsFragment : Fragment() {
         super.onResume()
         // 시스템 알림 설정에서 돌아왔을 때 상태 갱신
         updateNotificationStatus()
+        // 서비스 실행 상태를 토글에 반영 (리스너 트리거 없이 갱신)
+        val running = BluetoothForegroundService.isRunning
+        if (binding.switchForegroundService.isChecked != running) {
+            binding.switchForegroundService.setOnCheckedChangeListener(null)
+            binding.switchForegroundService.isChecked = running
+            binding.switchForegroundService.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) startForegroundService() else stopForegroundService()
+            }
+        }
     }
 
     private fun setupVersionInfo() {
@@ -74,7 +83,8 @@ class SettingsFragment : Fragment() {
     }
 
     private fun setupForegroundServiceToggle() {
-        binding.switchForegroundService.isChecked = true
+        // 실제 서비스 실행 상태를 토글에 반영
+        binding.switchForegroundService.isChecked = BluetoothForegroundService.isRunning
         binding.switchForegroundService.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) startForegroundService() else stopForegroundService()
         }

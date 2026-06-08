@@ -36,7 +36,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ScheduleViewModel @Inject constructor(
     private val bluetoothRepository: BluetoothRepository,
-    private val scheduleRepository: ScheduleRepository
+    private val scheduleRepository: ScheduleRepository,
+    private val alarmScheduler: com.echomedicine.app.alarm.MedicineAlarmScheduler
 ) : ViewModel() {
 
     companion object {
@@ -132,6 +133,8 @@ class ScheduleViewModel @Inject constructor(
             if (confirmation != null) {
                 // 설정 성공 → 로컬 DB에도 캐싱하여 홈 화면/목록에 즉시 반영
                 scheduleRepository.cacheSchedule(schedule)
+                // 자체 시간 알람 등록 (블루투스 연결과 무관하게 폰이 직접 알림)
+                alarmScheduler.schedule(schedule)
                 _uiEvent.emit(ScheduleUiEvent.SetSuccess(slotNumber))
             } else {
                 _uiEvent.emit(ScheduleUiEvent.TimeoutError)
@@ -193,6 +196,8 @@ class ScheduleViewModel @Inject constructor(
                     )
                 }
                 scheduleRepository.cacheSchedules(scheduleList)
+                // 조회된 스케줄로 자체 알람도 갱신
+                alarmScheduler.scheduleAll(scheduleList)
                 _uiEvent.emit(ScheduleUiEvent.GetSuccess)
             } else {
                 // 타임아웃: 부분 데이터 폐기

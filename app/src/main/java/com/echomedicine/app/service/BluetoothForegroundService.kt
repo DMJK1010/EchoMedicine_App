@@ -36,6 +36,11 @@ class BluetoothForegroundService : Service() {
     companion object {
         private const val TAG = "BtForegroundService"
 
+        /** 서비스 실행 여부 (설정 토글 상태 동기화용) */
+        @Volatile
+        var isRunning: Boolean = false
+            private set
+
         /**
          * 서비스를 시작하기 위한 Intent를 생성한다.
          */
@@ -68,6 +73,7 @@ class BluetoothForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service created")
+        isRunning = true
         startForeground(
             NotificationHelper.NOTIFICATION_ID_SERVICE,
             notificationHelper.buildServiceNotification()
@@ -93,6 +99,7 @@ class BluetoothForegroundService : Service() {
 
     override fun onDestroy() {
         Log.d(TAG, "Service destroyed")
+        isRunning = false
         messageSyncManager.stop()
         connectionManager.stopMonitoring()
         serviceScope.cancel()

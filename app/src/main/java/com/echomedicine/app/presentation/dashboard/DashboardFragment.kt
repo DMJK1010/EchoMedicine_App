@@ -87,6 +87,17 @@ class DashboardFragment : Fragment() {
                     bindSlotCard(cardBindings[index], slot)
                 }
             }
+            
+            // For testing AI button visibility if slots are empty
+            if (slots.all { it.status == SlotStatus.EMPTY }) {
+                cardBindings.forEachIndexed { index, binding ->
+                    binding.btnDetect.visibility = View.VISIBLE
+                    binding.btnDetect.setOnClickListener {
+                        val action = DashboardFragmentDirections.actionDashboardToAiDetection(index)
+                        findNavController().navigate(action)
+                    }
+                }
+            }
         }
     }
 
@@ -105,6 +116,11 @@ class DashboardFragment : Fragment() {
     private fun bindSlotCard(cardBinding: ItemSlotCardBinding, slot: MedicineSlot) {
         cardBinding.tvSlotNumber.text = getString(R.string.slot_number_label, slot.slotNumber + 1)
 
+        cardBinding.btnDetect.setOnClickListener {
+            val action = DashboardFragmentDirections.actionDashboardToAiDetection(slot.slotNumber)
+            findNavController().navigate(action)
+        }
+
         when (slot.status) {
             SlotStatus.EMPTY -> {
                 cardBinding.tvMedicineName.text = getString(R.string.slot_empty)
@@ -118,6 +134,7 @@ class DashboardFragment : Fragment() {
                     ContextCompat.getColor(requireContext(), R.color.slot_status_empty)
                 )
                 cardBinding.tvEmptyHint.visibility = View.VISIBLE
+                cardBinding.btnDetect.visibility = View.GONE
             }
             SlotStatus.WAITING -> {
                 cardBinding.tvMedicineName.text = slot.medicineName
@@ -132,6 +149,7 @@ class DashboardFragment : Fragment() {
                     ContextCompat.getColor(requireContext(), R.color.slot_status_waiting)
                 )
                 cardBinding.tvEmptyHint.visibility = View.GONE
+                cardBinding.btnDetect.visibility = View.VISIBLE
             }
             SlotStatus.TAKEN -> {
                 cardBinding.tvMedicineName.text = slot.medicineName
@@ -146,6 +164,7 @@ class DashboardFragment : Fragment() {
                     ContextCompat.getColor(requireContext(), R.color.slot_status_taken)
                 )
                 cardBinding.tvEmptyHint.visibility = View.GONE
+                cardBinding.btnDetect.visibility = View.GONE
             }
             SlotStatus.MISSED -> {
                 cardBinding.tvMedicineName.text = slot.medicineName
@@ -160,6 +179,7 @@ class DashboardFragment : Fragment() {
                     ContextCompat.getColor(requireContext(), R.color.slot_status_missed)
                 )
                 cardBinding.tvEmptyHint.visibility = View.GONE
+                cardBinding.btnDetect.visibility = View.VISIBLE
             }
         }
     }

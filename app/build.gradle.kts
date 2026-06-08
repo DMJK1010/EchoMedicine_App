@@ -101,6 +101,14 @@ dependencies {
     implementation(libs.coroutines.core)
     implementation(libs.coroutines.android)
 
+    // CameraX
+    implementation(libs.camera.camera2)
+    implementation(libs.camera.lifecycle)
+    implementation(libs.camera.view)
+
+    // ML Kit
+    implementation(libs.mlkit.pose.detection)
+
     // Unit Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotest.runner.junit5)

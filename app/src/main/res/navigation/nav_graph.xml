@@ -15,6 +15,10 @@
         <action
             android:id="@+id/action_dashboard_to_connection"
             app:destination="@id/navigation_connection" />
+
+        <action
+            android:id="@+id/action_dashboard_to_ai_detection"
+            app:destination="@id/navigation_ai_detection" />
     </fragment>
 
     <fragment
@@ -46,6 +50,16 @@
         android:name="com.echomedicine.app.presentation.connection.ConnectionFragment"
         android:label="@string/connection_status_label"
         tools:layout="@layout/fragment_connection" />
+
+    <fragment
+        android:id="@+id/navigation_ai_detection"
+        android:name="com.echomedicine.app.presentation.ai.AiDetectionFragment"
+        android:label="@string/ai_detection_title"
+        tools:layout="@layout/fragment_ai_detection">
+        <argument
+            android:name="slotNumber"
+            app:argType="integer" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_history_detail"

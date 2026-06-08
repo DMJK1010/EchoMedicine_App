@@ -90,6 +90,7 @@
     <!-- AI Detection -->
     <string name="ai_detection_title">복용 여부 인식</string>
     <string name="ai_detection_hint">카메라를 응시하고 약을 드셔보세요</string>
+    <string name="ai_detection_detecting">복용 동작 인식 중… 자세를 유지해주세요</string>
     <string name="ai_detection_success">복용이 감지되었습니다!</string>
     <string name="ai_detection_camera_permission_denied">카메라 권한이 필요합니다.</string>
     <string name="ai_detect_button">카메라 확인</string>

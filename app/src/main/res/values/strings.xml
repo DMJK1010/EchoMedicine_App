@@ -70,9 +70,6 @@
     <string name="settings_title">설정</string>
     <string name="settings_dark_mode_title">다크 모드</string>
     <string name="settings_dark_mode_description">시스템 설정에 따라 자동으로 전환됩니다.</string>
-    <string name="settings_dark_mode_system">시스템 설정 따름</string>
-    <string name="settings_dark_mode_light">라이트 모드</string>
-    <string name="settings_dark_mode_dark">다크 모드</string>
     <string name="settings_foreground_service_title">백그라운드 블루투스 수신</string>
     <string name="settings_foreground_service_description">앱이 백그라운드에 있을 때도 Foreground Service를 통해 복약 알림을 수신합니다.</string>
     <string name="settings_version_title">앱 버전</string>

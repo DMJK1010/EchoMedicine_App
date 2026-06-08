@@ -16,7 +16,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import com.echomedicine.app.BuildConfig
 import com.echomedicine.app.R
-import com.echomedicine.app.data.preference.AppPreferences
 import com.echomedicine.app.databinding.FragmentSettingsBinding
 import com.echomedicine.app.domain.model.ConnectionState
 import com.echomedicine.app.service.BluetoothForegroundService
@@ -89,9 +88,6 @@ class SettingsFragment : Fragment() {
         // 알림 설정 이동
         binding.btnOpenNotification.setOnClickListener { openNotificationSettings() }
 
-        // 다크 모드 선택 다이얼로그
-        binding.cardDarkMode.setOnClickListener { showDarkModeDialog() }
-
         // 오픈소스 라이선스
         binding.btnLicenses.setOnClickListener { showLicensesDialog() }
     }
@@ -104,9 +100,6 @@ class SettingsFragment : Fragment() {
                 }
                 launch {
                     viewModel.lastSyncTime.collect { updateLastSyncTime(it) }
-                }
-                launch {
-                    viewModel.darkMode.collect { updateDarkModeValue(it) }
                 }
             }
         }
@@ -130,36 +123,6 @@ class SettingsFragment : Fragment() {
                 syncTimeFormat.format(Date(timeMillis))
             )
         }
-    }
-
-    private fun updateDarkModeValue(mode: Int) {
-        binding.tvDarkModeValue.text = getString(darkModeLabelRes(mode))
-    }
-
-    private fun darkModeLabelRes(mode: Int): Int = when (mode) {
-        AppPreferences.DARK_MODE_LIGHT -> R.string.settings_dark_mode_light
-        AppPreferences.DARK_MODE_DARK -> R.string.settings_dark_mode_dark
-        else -> R.string.settings_dark_mode_system
-    }
-
-    private fun showDarkModeDialog() {
-        val modes = intArrayOf(
-            AppPreferences.DARK_MODE_SYSTEM,
-            AppPreferences.DARK_MODE_LIGHT,
-            AppPreferences.DARK_MODE_DARK
-        )
-        val labels = modes.map { getString(darkModeLabelRes(it)) }.toTypedArray()
-        val current = viewModel.darkMode.value
-        val checkedIndex = modes.indexOf(current).coerceAtLeast(0)
-
-        MaterialAlertDialogBuilder(requireContext())
-            .setTitle(R.string.settings_dark_mode_dialog_title)
-            .setSingleChoiceItems(labels, checkedIndex) { dialog, which ->
-                viewModel.setDarkMode(modes[which])
-                dialog.dismiss()
-            }
-            .setNegativeButton(R.string.cancel, null)
-            .show()
     }
 
     private fun showLicensesDialog() {

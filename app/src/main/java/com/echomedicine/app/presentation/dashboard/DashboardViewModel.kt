@@ -23,7 +23,7 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    messageSyncManager: MessageSyncManager,
+    private val messageSyncManager: MessageSyncManager,
     historyRepository: HistoryRepository,
     bluetoothRepository: BluetoothRepository
 ) : ViewModel() {
@@ -62,5 +62,12 @@ class DashboardViewModel @Inject constructor(
             add(Calendar.DAY_OF_YEAR, -7)
         }
         return calendar.timeInMillis
+    }
+
+    /**
+     * 화면이 다시 표시될 때(예: AI 인식 후 복귀) 최신 복용 상태로 Slot을 갱신한다.
+     */
+    fun refreshSlots() {
+        messageSyncManager.requestRefresh()
     }
 }

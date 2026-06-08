@@ -48,6 +48,12 @@ class DashboardFragment : Fragment() {
         observeState()
     }
 
+    override fun onResume() {
+        super.onResume()
+        // AI 인식 화면 등에서 돌아왔을 때 최신 복용 상태로 갱신
+        viewModel.refreshSlots()
+    }
+
     private fun setupToolbar() {
         binding.toolbar.inflateMenu(R.menu.menu_dashboard)
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
@@ -85,17 +91,6 @@ class DashboardFragment : Fragment() {
             slots.forEachIndexed { index, slot ->
                 if (index < cardBindings.size) {
                     bindSlotCard(cardBindings[index], slot)
-                }
-            }
-            
-            // For testing AI button visibility if slots are empty
-            if (slots.all { it.status == SlotStatus.EMPTY }) {
-                cardBindings.forEachIndexed { index, binding ->
-                    binding.btnDetect.visibility = View.VISIBLE
-                    binding.btnDetect.setOnClickListener {
-                        val action = DashboardFragmentDirections.actionDashboardToAiDetection(index)
-                        findNavController().navigate(action)
-                    }
                 }
             }
         }

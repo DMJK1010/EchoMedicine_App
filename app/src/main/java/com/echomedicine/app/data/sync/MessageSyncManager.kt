@@ -123,6 +123,19 @@ class MessageSyncManager @Inject constructor(
     }
 
     /**
+     * 외부(예: AI 인식 화면, 대시보드 진입)에서 Slot 상태 즉시 갱신을 요청한다.
+     *
+     * DB(스케줄/이력)가 다른 경로로 변경된 경우, 이 메서드를 호출하면
+     * 최신 데이터로 slotStates를 다시 계산하여 UI에 반영한다.
+     * start() 여부와 무관하게 동작한다(앱 레벨 coroutineScope 사용).
+     */
+    fun requestRefresh() {
+        coroutineScope.launch(exceptionHandler) {
+            refreshSlotStates()
+        }
+    }
+
+    /**
      * 수신 메시지를 수집하고 데이터 영속화를 수행한다.
      *
      * - TakenConfirmation → HistoryRepository에 TAKEN 기록 저장 + Slot 상태 갱신

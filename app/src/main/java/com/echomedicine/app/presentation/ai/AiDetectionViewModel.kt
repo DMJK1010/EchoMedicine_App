@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.echomedicine.app.data.sync.MessageSyncManager
 import com.echomedicine.app.domain.repository.HistoryRepository
 import com.echomedicine.app.domain.repository.ScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AiDetectionViewModel @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
-    private val historyRepository: HistoryRepository
+    private val historyRepository: HistoryRepository,
+    private val messageSyncManager: MessageSyncManager
 ) : ViewModel() {
 
     private val _isDetected = MutableStateFlow(false)
@@ -44,6 +46,8 @@ class AiDetectionViewModel @Inject constructor(
                         scheduledMinute = targetSchedule.minute
                     )
                     _isDetected.value = true
+                    // 홈 화면(대시보드)의 복용 상태가 즉시 갱신되도록 요청
+                    messageSyncManager.requestRefresh()
                 }
             } catch (e: Exception) {
                 // Error handling can be added here

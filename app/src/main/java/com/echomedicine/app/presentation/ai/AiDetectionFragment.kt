@@ -44,18 +44,27 @@ class AiDetectionFragment : Fragment() {
     /** 현재 후면 카메라 사용 여부 (true = 후면, false = 전면) */
     private var isBackCamera = true
 
-    /** 손-입 접근이 연속으로 감지된 프레임 수 */
-    private var consecutiveHits = 0
+    /** 손-입 접근 감지 점수 (히스테리시스용). hit이면 증가, miss이면 감소 */
+    private var detectionScore = 0
 
     companion object {
         /** 랜드마크가 화면에 실제로 존재한다고 인정하는 최소 신뢰도 */
         private const val MIN_LANDMARK_LIKELIHOOD = 0.5f
 
-        /** 복용 확정에 필요한 연속 감지 프레임 수 */
-        private const val REQUIRED_CONSECUTIVE_HITS = 8
+        /** 복용 확정에 필요한 점수 (이 값 이상이면 복용 완료 처리) */
+        private const val DETECTION_SCORE_THRESHOLD = 10
 
-        /** 손-입 거리 임계값 = 입 너비 × 이 배수 */
-        private const val MOUTH_WIDTH_MULTIPLIER = 1.0
+        /** hit 1회당 증가하는 점수 */
+        private const val SCORE_INCREMENT = 2
+
+        /** miss 1회당 감소하는 점수 (증가보다 작게 하여 잠깐의 흔들림을 허용) */
+        private const val SCORE_DECREMENT = 1
+
+        /** "인식 중" 문구를 표시하기 시작하는 점수 */
+        private const val DETECTING_HINT_SCORE = 2
+
+        /** 손-입 거리 임계값 = 입 너비 × 이 배수 (값이 클수록 너그럽게 인식) */
+        private const val MOUTH_WIDTH_MULTIPLIER = 1.6
     }
 
     private val poseDetector by lazy {
@@ -165,13 +174,13 @@ class AiDetectionFragment : Fragment() {
 
         // 1) 입이 실제로 화면에 충분히 보여야 함 (신뢰도 확인)
         if (leftMouth == null || rightMouth == null) {
-            resetHits()
+            decayScore()
             return
         }
         if (leftMouth.inFrameLikelihood < MIN_LANDMARK_LIKELIHOOD ||
             rightMouth.inFrameLikelihood < MIN_LANDMARK_LIKELIHOOD
         ) {
-            resetHits()
+            decayScore()
             return
         }
 
@@ -207,32 +216,48 @@ class AiDetectionFragment : Fragment() {
             dist < threshold
         } ?: false
 
-        // 3) 단일 프레임이 아니라 연속 프레임 동안 유지되어야 확정 (흔들림/우연 방지)
+        // 3) 점수 누적 방식: hit이면 점수 증가, miss이면 천천히 감소
+        //    (한 프레임 흔들림으로 즉시 리셋되지 않도록 하여 인식률을 높이고 문구 깜빡임을 방지)
         if (isLeftHandClose || isRightHandClose) {
-            consecutiveHits++
-            updateProgressHint()
-            if (consecutiveHits >= REQUIRED_CONSECUTIVE_HITS) {
-                onDosageDetected()
-            }
+            detectionScore = (detectionScore + SCORE_INCREMENT)
+                .coerceAtMost(DETECTION_SCORE_THRESHOLD)
         } else {
-            resetHits()
+            detectionScore = (detectionScore - SCORE_DECREMENT).coerceAtLeast(0)
+        }
+
+        updateHintByScore()
+
+        if (detectionScore >= DETECTION_SCORE_THRESHOLD) {
+            onDosageDetected()
         }
     }
 
-    /** 연속 감지 카운트를 초기화하고 안내 문구를 원래대로 되돌린다. */
-    private fun resetHits() {
-        if (consecutiveHits != 0) {
-            consecutiveHits = 0
-            if (viewModel.isDetected.value.not()) {
-                _binding?.tvStatus?.text = getString(R.string.ai_detection_hint)
-            }
-        }
-    }
-
-    /** 감지 진행 상황을 사용자에게 표시한다. */
-    private fun updateProgressHint() {
+    /**
+     * 현재 점수에 따라 안내 문구를 갱신한다.
+     * 일정 점수 이상이면 "인식 중", 그 미만이면 기본 안내를 표시한다.
+     * 점수가 점진적으로 변하므로 문구가 매 프레임 깜빡이지 않는다.
+     */
+    private fun updateHintByScore() {
         if (viewModel.isDetected.value) return
-        _binding?.tvStatus?.text = getString(R.string.ai_detection_detecting)
+        val binding = _binding ?: return
+        if (detectionScore >= DETECTING_HINT_SCORE) {
+            val target = getString(R.string.ai_detection_detecting)
+            if (binding.tvStatus.text != target) binding.tvStatus.text = target
+        } else {
+            val target = getString(R.string.ai_detection_hint)
+            if (binding.tvStatus.text != target) binding.tvStatus.text = target
+        }
+    }
+
+    /**
+     * 입/손이 화면에서 사라졌을 때 점수를 감소시킨다.
+     * 즉시 0으로 리셋하지 않아 잠깐의 인식 누락에도 진행 상태가 유지된다.
+     */
+    private fun decayScore() {
+        if (detectionScore > 0) {
+            detectionScore = (detectionScore - SCORE_DECREMENT).coerceAtLeast(0)
+            updateHintByScore()
+        }
     }
 
     private fun onDosageDetected() {

@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.echomedicine.app.domain.model.ConnectionState
 import com.echomedicine.app.domain.repository.BluetoothRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -15,7 +16,8 @@ import javax.inject.Inject
 /**
  * 블루투스 연결 화면의 ViewModel.
  *
- * 페어링된 기기 목록 조회, 연결/해제, 연결 상태 관찰을 담당한다.
+ * 페어링된 기기 목록 조회, 주변 기기 검색(discovery), 연결/해제,
+ * 연결 상태 관찰을 담당한다.
  *
  * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7
  */
@@ -31,9 +33,19 @@ class ConnectionViewModel @Inject constructor(
     /** 페어링된 블루투스 기기 목록 */
     val pairedDevices: LiveData<List<BluetoothDevice>> = _pairedDevices
 
+    private val _discoveredDevices = MutableLiveData<List<BluetoothDevice>>(emptyList())
+    /** 검색으로 발견된(미페어링) 블루투스 기기 목록 */
+    val discoveredDevices: LiveData<List<BluetoothDevice>> = _discoveredDevices
+
+    private val _isScanning = MutableLiveData(false)
+    /** 현재 검색 진행 중 여부 */
+    val isScanning: LiveData<Boolean> = _isScanning
+
     private val _connectionError = MutableLiveData<String?>()
     /** 연결 오류 메시지 (null이면 오류 없음) */
     val connectionError: LiveData<String?> = _connectionError
+
+    private var discoveryJob: Job? = null
 
     /**
      * 페어링된 블루투스 기기 목록을 로드한다.
@@ -45,6 +57,50 @@ class ConnectionViewModel @Inject constructor(
     }
 
     /**
+     * 주변 블루투스 기기 검색을 시작한다.
+     *
+     * 발견되는 기기를 실시간으로 discoveredDevices에 누적한다.
+     * 이미 페어링된 기기는 검색 결과에서 제외한다.
+     */
+    fun startScan() {
+        if (_isScanning.value == true) return
+
+        _discoveredDevices.value = emptyList()
+        _isScanning.value = true
+
+        val pairedAddresses = bluetoothRepository.getPairedDevices()
+            .map { it.address }
+            .toSet()
+
+        discoveryJob = viewModelScope.launch {
+            try {
+                bluetoothRepository.startDiscovery().collect { device ->
+                    // 페어링된 기기 및 중복 제외
+                    if (device.address !in pairedAddresses) {
+                        val current = _discoveredDevices.value ?: emptyList()
+                        if (current.none { it.address == device.address }) {
+                            _discoveredDevices.value = current + device
+                        }
+                    }
+                }
+            } finally {
+                // Flow가 완료(검색 종료)되거나 취소되면 스캔 상태 해제
+                _isScanning.value = false
+            }
+        }
+    }
+
+    /**
+     * 진행 중인 블루투스 기기 검색을 중지한다.
+     */
+    fun stopScan() {
+        discoveryJob?.cancel()
+        discoveryJob = null
+        bluetoothRepository.stopDiscovery()
+        _isScanning.value = false
+    }
+
+    /**
      * 지정된 블루투스 기기에 연결을 시도한다.
      * Requirement 1.3: SPP UUID를 사용하여 연결을 시도하고 진행 중 상태를 표시한다.
      * Requirement 1.5: 연결 타임아웃 시 오류 메시지를 표시한다.
@@ -53,6 +109,8 @@ class ConnectionViewModel @Inject constructor(
      */
     fun connectToDevice(device: BluetoothDevice) {
         _connectionError.value = null
+        // 연결 전 검색 중지
+        stopScan()
         viewModelScope.launch {
             val result = bluetoothRepository.connect(device)
             result.onFailure { throwable ->
@@ -74,5 +132,10 @@ class ConnectionViewModel @Inject constructor(
     /** 연결 오류 메시지를 소비(클리어)한다. */
     fun clearError() {
         _connectionError.value = null
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        stopScan()
     }
 }

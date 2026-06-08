@@ -27,9 +27,9 @@ import kotlinx.coroutines.launch
 /**
  * 블루투스 연결 화면 Fragment.
  *
- * 페어링된 기기 목록을 표시하고, 기기 선택 시 연결을 시도한다.
- * 블루투스 비활성화 시 활성화 요청 다이얼로그를 표시하며,
- * 페어링된 기기가 없을 때는 시스템 블루투스 설정 이동을 안내한다.
+ * 페어링된 기기 목록과 검색으로 발견된 주변 기기 목록을 표시하고,
+ * 기기 선택 시 연결을 시도한다. 블루투스 비활성화 시 활성화 요청
+ * 다이얼로그를 표시한다.
  *
  * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7
  */
@@ -50,6 +50,10 @@ class ConnectionFragment : Fragment() {
         }
 
     private lateinit var pairedDeviceAdapter: PairedDeviceAdapter
+    private lateinit var discoveredDeviceAdapter: PairedDeviceAdapter
+
+    /** 권한 요청 후 검색을 시작할지 여부 (true면 권한 승인 시 스캔 시작) */
+    private var pendingScan = false
 
     /**
      * 블루투스 활성화 요청 결과 처리.
@@ -59,7 +63,12 @@ class ConnectionFragment : Fragment() {
         ActivityResultContracts.StartActivityForResult()
     ) { _ ->
         if (bluetoothAdapter?.isEnabled == true) {
-            loadDevices()
+            if (pendingScan) {
+                pendingScan = false
+                viewModel.startScan()
+            } else {
+                loadDevices()
+            }
         } else {
             showBluetoothRequiredMessage()
         }
@@ -73,8 +82,13 @@ class ConnectionFragment : Fragment() {
     ) { permissions ->
         val allGranted = permissions.values.all { it }
         if (allGranted) {
-            checkBluetoothAndLoad()
+            if (pendingScan) {
+                checkBluetoothAndScan()
+            } else {
+                checkBluetoothAndLoad()
+            }
         } else {
+            pendingScan = false
             showPermissionDeniedMessage()
         }
     }
@@ -90,24 +104,33 @@ class ConnectionFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupRecyclerView()
+        setupRecyclerViews()
         setupClickListeners()
         observeViewModel()
         checkPermissionsAndLoad()
     }
 
     override fun onDestroyView() {
+        viewModel.stopScan()
         super.onDestroyView()
         _binding = null
     }
 
-    private fun setupRecyclerView() {
+    private fun setupRecyclerViews() {
         pairedDeviceAdapter = PairedDeviceAdapter { device ->
             viewModel.connectToDevice(device)
         }
         binding.rvPairedDevices.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = pairedDeviceAdapter
+        }
+
+        discoveredDeviceAdapter = PairedDeviceAdapter { device ->
+            viewModel.connectToDevice(device)
+        }
+        binding.rvDiscoveredDevices.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            adapter = discoveredDeviceAdapter
         }
     }
 
@@ -127,6 +150,14 @@ class ConnectionFragment : Fragment() {
         binding.btnClose.setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
+
+        binding.btnScan.setOnClickListener {
+            if (viewModel.isScanning.value == true) {
+                viewModel.stopScan()
+            } else {
+                startScanWithPermissionCheck()
+            }
+        }
     }
 
     private fun observeViewModel() {
@@ -141,7 +172,22 @@ class ConnectionFragment : Fragment() {
 
         // 페어링 기기 목록 관찰
         viewModel.pairedDevices.observe(viewLifecycleOwner) { devices ->
-            updateDeviceListUI(devices)
+            updatePairedDeviceListUI(devices)
+        }
+
+        // 검색된 기기 목록 관찰
+        viewModel.discoveredDevices.observe(viewLifecycleOwner) { devices ->
+            discoveredDeviceAdapter.submitList(devices)
+            binding.tvNoDiscoveredDevices.visibility =
+                if (devices.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        // 검색 상태 관찰
+        viewModel.isScanning.observe(viewLifecycleOwner) { scanning ->
+            binding.progressScan.visibility = if (scanning) View.VISIBLE else View.GONE
+            binding.btnScan.text = getString(
+                if (scanning) R.string.scan_stop else R.string.scan_devices
+            )
         }
 
         // 연결 오류 관찰
@@ -162,7 +208,6 @@ class ConnectionFragment : Fragment() {
                 binding.tvConnectionStatus.text = getString(R.string.status_disconnected)
                 binding.btnDisconnect.visibility = View.GONE
                 binding.btnReconnect.visibility = View.VISIBLE
-                binding.rvPairedDevices.visibility = View.VISIBLE
             }
             is ConnectionState.Connecting -> {
                 binding.tvConnectionStatus.text = getString(R.string.status_connecting)
@@ -187,11 +232,11 @@ class ConnectionFragment : Fragment() {
     }
 
     /**
-     * 기기 목록 UI 업데이트.
+     * 페어링 기기 목록 UI 업데이트.
      * Requirement 1.2: 페어링된 기기가 없으면 안내 메시지와 설정 이동 옵션 제공.
      */
     @SuppressLint("MissingPermission")
-    private fun updateDeviceListUI(devices: List<android.bluetooth.BluetoothDevice>) {
+    private fun updatePairedDeviceListUI(devices: List<android.bluetooth.BluetoothDevice>) {
         if (devices.isEmpty()) {
             binding.rvPairedDevices.visibility = View.GONE
             binding.layoutNoDevices.visibility = View.VISIBLE
@@ -206,10 +251,23 @@ class ConnectionFragment : Fragment() {
      * 권한 확인 후 기기 목록 로드.
      */
     private fun checkPermissionsAndLoad() {
+        pendingScan = false
         if (!PermissionHelper.hasBluetoothPermissions(requireContext())) {
             permissionLauncher.launch(PermissionHelper.getRequiredBluetoothPermissions())
         } else {
             checkBluetoothAndLoad()
+        }
+    }
+
+    /**
+     * 권한 확인 후 검색 시작.
+     */
+    private fun startScanWithPermissionCheck() {
+        if (!PermissionHelper.hasBluetoothPermissions(requireContext())) {
+            pendingScan = true
+            permissionLauncher.launch(PermissionHelper.getRequiredBluetoothPermissions())
+        } else {
+            checkBluetoothAndScan()
         }
     }
 
@@ -227,6 +285,24 @@ class ConnectionFragment : Fragment() {
             showEnableBluetoothDialog()
         } else {
             loadDevices()
+        }
+    }
+
+    /**
+     * 블루투스 활성화 확인 후 검색 시작.
+     */
+    private fun checkBluetoothAndScan() {
+        val adapter = bluetoothAdapter
+        if (adapter == null) {
+            showBluetoothRequiredMessage()
+            return
+        }
+        if (!adapter.isEnabled) {
+            pendingScan = true
+            showEnableBluetoothDialog()
+        } else {
+            pendingScan = false
+            viewModel.startScan()
         }
     }
 
@@ -248,6 +324,7 @@ class ConnectionFragment : Fragment() {
             }
             .setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
+                pendingScan = false
                 showBluetoothRequiredMessage()
             }
             .setCancelable(false)

@@ -70,6 +70,9 @@
     <string name="settings_title">설정</string>
     <string name="settings_dark_mode_title">다크 모드</string>
     <string name="settings_dark_mode_description">시스템 설정에 따라 자동으로 전환됩니다.</string>
+    <string name="settings_dark_mode_system">시스템 설정 따름</string>
+    <string name="settings_dark_mode_light">라이트 모드</string>
+    <string name="settings_dark_mode_dark">다크 모드</string>
     <string name="settings_foreground_service_title">백그라운드 블루투스 수신</string>
     <string name="settings_foreground_service_description">앱이 백그라운드에 있을 때도 Foreground Service를 통해 복약 알림을 수신합니다.</string>
     <string name="settings_version_title">앱 버전</string>
@@ -77,6 +80,34 @@
     <string name="settings_section_display">화면 표시</string>
     <string name="settings_section_service">서비스</string>
     <string name="settings_section_info">정보</string>
+
+    <!-- Settings - Notification -->
+    <string name="settings_section_notification">알림</string>
+    <string name="settings_notification_title">알림 권한</string>
+    <string name="settings_notification_enabled">알림이 허용되어 있습니다.</string>
+    <string name="settings_notification_disabled">알림이 꺼져 있습니다. 복약 알림을 받으려면 허용해주세요.</string>
+    <string name="settings_notification_open">알림 설정 열기</string>
+
+    <!-- Settings - Connection -->
+    <string name="settings_section_connection">연결</string>
+    <string name="settings_connection_title">기기 연결 상태</string>
+    <string name="settings_connection_connected">연결됨</string>
+    <string name="settings_connection_disconnected">연결 안 됨</string>
+    <string name="settings_connection_connecting">연결 중…</string>
+    <string name="settings_connection_open">연결 화면 열기</string>
+    <string name="settings_last_sync_title">마지막 동기화</string>
+    <string name="settings_last_sync_never">동기화 이력 없음</string>
+    <string name="settings_last_sync_format">%1$s</string>
+
+    <!-- Settings - Dark mode dialog -->
+    <string name="settings_dark_mode_dialog_title">다크 모드 설정</string>
+
+    <!-- Settings - App info -->
+    <string name="settings_app_info_title">앱 정보</string>
+    <string name="settings_app_info_description">EchoMedicine — 스마트 복약 알림 앱</string>
+    <string name="settings_licenses_title">오픈소스 라이선스</string>
+    <string name="settings_help_title">도움말</string>
+    <string name="settings_help_description">블루투스로 복약 보관함과 연결하고, 카메라로 복용 여부를 확인할 수 있습니다.</string>
 
     <!-- History Screen -->
     <string name="history_title">복용 이력</string>

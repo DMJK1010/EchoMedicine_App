@@ -70,7 +70,7 @@ class HistoryRepositoryImpl @Inject constructor(
         return historyDao.getTakenRateSince(startDate)
     }
 
-    suspend fun getRecord(date: Long, slot: Int): HistoryRecord? {
+    override suspend fun getRecord(date: Long, slot: Int): HistoryRecord? {
         return historyDao.getRecord(date, slot)?.toDomain()
     }
 

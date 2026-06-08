@@ -18,12 +18,12 @@ interface HistoryDao {
     fun getHistoryByDate(date: Long): Flow<List<HistoryEntity>>
 
     @Query("""
-        SELECT CASE 
-            WHEN (SELECT COUNT(*) FROM history WHERE date >= :startDate) = 0 THEN 0.0
-            ELSE COUNT(*) * 1.0 / (SELECT COUNT(*) FROM history WHERE date >= :startDate) * 100 
+        SELECT CASE
+            WHEN COUNT(*) = 0 THEN 0.0
+            ELSE SUM(CASE WHEN status = 'TAKEN' THEN 1.0 ELSE 0.0 END) / COUNT(*) * 100
         END
-        FROM history 
-        WHERE date >= :startDate AND status = 'TAKEN'
+        FROM history
+        WHERE date >= :startDate
     """)
     fun getTakenRateSince(startDate: Long): Flow<Double>
 

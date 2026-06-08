@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.util.Calendar
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,12 +40,17 @@ class AiDetectionViewModel @Inject constructor(
                 val targetSchedule = schedules.find { it.slotNumber == slotNumber }
                 
                 if (targetSchedule != null) {
-                    historyRepository.recordTaken(
-                        slotNumber = targetSchedule.slotNumber,
-                        medicineName = targetSchedule.medicineName,
-                        scheduledHour = targetSchedule.hour,
-                        scheduledMinute = targetSchedule.minute
-                    )
+                    // 오늘 이미 기록이 있으면 중복 저장하지 않음
+                    val today = todayMillis()
+                    val existing = historyRepository.getRecord(today, targetSchedule.slotNumber)
+                    if (existing == null) {
+                        historyRepository.recordTaken(
+                            slotNumber = targetSchedule.slotNumber,
+                            medicineName = targetSchedule.medicineName,
+                            scheduledHour = targetSchedule.hour,
+                            scheduledMinute = targetSchedule.minute
+                        )
+                    }
                     _isDetected.value = true
                     // 홈 화면(대시보드)의 복용 상태가 즉시 갱신되도록 요청
                     messageSyncManager.requestRefresh()
@@ -55,5 +61,15 @@ class AiDetectionViewModel @Inject constructor(
                 _isLoading.value = false
             }
         }
+    }
+
+    private fun todayMillis(): Long {
+        val calendar = Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        return calendar.timeInMillis
     }
 }

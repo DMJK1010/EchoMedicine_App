@@ -42,6 +42,9 @@ class ScheduleFragment : Fragment() {
         intArrayOf(-1, -1)   // Slot 2
     )
 
+    /** 캐시 값으로 입력란을 초기 1회만 채웠는지 여부 (사용자 입력 덮어쓰기 방지) */
+    private var schedulePrefilled = false
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -203,6 +206,8 @@ class ScheduleFragment : Fragment() {
                 ).show()
             }
             is ScheduleUiEvent.GetSuccess -> {
+                // 명시적 조회 성공 시, 다음 캐시 방출에서 입력란을 강제로 갱신하도록 플래그 해제
+                schedulePrefilled = false
                 Toast.makeText(
                     requireContext(),
                     getString(R.string.schedule_get_success),
@@ -280,9 +285,15 @@ class ScheduleFragment : Fragment() {
 
     /**
      * 캐싱된 스케줄 데이터를 UI에 반영한다.
-     * 조회(GET) 결과 또는 Room DB 캐시 데이터를 각 Slot 카드에 표시한다.
+     *
+     * 자동 캐시 갱신(Flow)으로 인해 사용자가 타이핑 중인 입력이 덮어써지지 않도록,
+     * 최초 1회만 입력란을 채운다. 명시적 조회(GET 성공) 시에는 forceUpdate=true로 강제 반영한다.
      */
-    private fun updateScheduleUI(schedules: List<Schedule>) {
+    private fun updateScheduleUI(schedules: List<Schedule>, forceUpdate: Boolean = false) {
+        if (schedules.isEmpty()) return
+        // 이미 한 번 채웠고 강제 갱신이 아니면, 사용자 입력 보호를 위해 덮어쓰지 않음
+        if (schedulePrefilled && !forceUpdate) return
+
         for (schedule in schedules) {
             when (schedule.slotNumber) {
                 0 -> {
@@ -305,5 +316,6 @@ class ScheduleFragment : Fragment() {
                 }
             }
         }
+        schedulePrefilled = true
     }
 }

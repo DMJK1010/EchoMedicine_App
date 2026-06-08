@@ -26,6 +26,10 @@ class ScheduleRepositoryImpl @Inject constructor(
         scheduleDao.upsertAll(entities)
     }
 
+    override suspend fun cacheSchedule(schedule: Schedule) {
+        scheduleDao.upsert(schedule.toEntity(syncedAt = System.currentTimeMillis()))
+    }
+
     override suspend fun getLastSyncTime(): Long? {
         return scheduleDao.getLastSyncTime()
     }

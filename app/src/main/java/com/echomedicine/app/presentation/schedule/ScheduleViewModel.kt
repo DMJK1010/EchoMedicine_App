@@ -130,6 +130,8 @@ class ScheduleViewModel @Inject constructor(
             _isLoading.value = false
 
             if (confirmation != null) {
+                // 설정 성공 → 로컬 DB에도 캐싱하여 홈 화면/목록에 즉시 반영
+                scheduleRepository.cacheSchedule(schedule)
                 _uiEvent.emit(ScheduleUiEvent.SetSuccess(slotNumber))
             } else {
                 _uiEvent.emit(ScheduleUiEvent.TimeoutError)

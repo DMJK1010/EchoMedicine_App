@@ -11,6 +11,8 @@ interface BluetoothRepository {
     val incomingMessages: Flow<BluetoothMessage>
 
     fun getPairedDevices(): List<BluetoothDevice>
+    fun startDiscovery(): Flow<BluetoothDevice>
+    fun stopDiscovery()
     suspend fun connect(device: BluetoothDevice): Result<Unit>
     suspend fun disconnect()
     suspend fun send(command: String): Result<Unit>

@@ -9,3 +9,6 @@
 .cxx
 local.properties
 /app/build
+
+# gradle.properties - 환경별(JDK 경로 등) 차이로 각자 로컬에서 관리
+/gradle.properties

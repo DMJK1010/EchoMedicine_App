@@ -41,6 +41,9 @@ class AiDetectionFragment : Fragment() {
 
     private lateinit var cameraController: LifecycleCameraController
 
+    /** 현재 후면 카메라 사용 여부 (true = 후면, false = 전면) */
+    private var isBackCamera = true
+
     private val poseDetector by lazy {
         val options = PoseDetectorOptions.Builder()
             .setDetectorMode(PoseDetectorOptions.STREAM_MODE)
@@ -79,6 +82,23 @@ class AiDetectionFragment : Fragment() {
         binding.toolbar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
+        binding.btnSwitchCamera.setOnClickListener {
+            toggleCamera()
+        }
+    }
+
+    /**
+     * 전면/후면 카메라를 전환한다.
+     * cameraController가 초기화된 경우에만 동작한다.
+     */
+    private fun toggleCamera() {
+        if (!::cameraController.isInitialized) return
+        isBackCamera = !isBackCamera
+        cameraController.cameraSelector = if (isBackCamera) {
+            androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
+        } else {
+            androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
+        }
     }
 
     private fun checkCameraPermission() {
@@ -95,9 +115,12 @@ class AiDetectionFragment : Fragment() {
         cameraController = LifecycleCameraController(context)
         cameraController.bindToLifecycle(viewLifecycleOwner)
 
-        // Try to find the camera by ID "10" which dumpsys reports as the active one
-        // If not found, use DEFAULT_BACK_CAMERA (which maps to 10 in emulator)
-        cameraController.cameraSelector = androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
+        // 현재 선택된 카메라(기본: 후면)를 사용
+        cameraController.cameraSelector = if (isBackCamera) {
+            androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
+        } else {
+            androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
+        }
         
         binding.previewView.controller = cameraController
 

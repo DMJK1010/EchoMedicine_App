@@ -96,6 +96,9 @@ class MessageSyncManager @Inject constructor(
     )
     val slotStates: StateFlow<List<MedicineSlot>> = _slotStates.asStateFlow()
 
+    /** 각 칸의 약 유무 (IR 센서 기반). 기본값 true(있음). */
+    private val medicinePresence = booleanArrayOf(true, true, true)
+
     /**
      * 동기화 이벤트를 발행하는 SharedFlow.
      * 동기화 성공/실패 등의 이벤트를 UI에 전달한다.
@@ -196,10 +199,32 @@ class MessageSyncManager @Inject constructor(
                 handleDailyReset()
             }
 
+            is BluetoothMessage.MedicinePresence -> {
+                handlePresence(message.slot, message.present)
+            }
+
+            is BluetoothMessage.ScheduleInfo -> {
+                // GET 응답에 포함된 약 유무도 반영
+                if (message.slot in 0 until EXPECTED_SLOT_COUNT) {
+                    medicinePresence[message.slot] = message.present
+                    refreshSlotStates()
+                }
+            }
+
             else -> {
                 // 다른 메시지 타입은 이 레이어에서 처리하지 않음
             }
         }
+    }
+
+    /**
+     * 약 유무(📦) 메시지를 처리하여 해당 칸의 상태를 갱신한다.
+     */
+    private suspend fun handlePresence(slot: Int, present: Boolean) {
+        if (slot !in 0 until EXPECTED_SLOT_COUNT) return
+        Log.d(TAG, "Presence update: slot=$slot present=$present")
+        medicinePresence[slot] = present
+        refreshSlotStates()
     }
 
     /**
@@ -334,6 +359,9 @@ class MessageSyncManager @Inject constructor(
                 .take(EXPECTED_SLOT_COUNT)
                 .collect { message ->
                     val info = message as BluetoothMessage.ScheduleInfo
+                    if (info.slot in 0 until EXPECTED_SLOT_COUNT) {
+                        medicinePresence[info.slot] = info.present
+                    }
                     collected.add(
                         Schedule(
                             slotNumber = info.slot,
@@ -405,7 +433,8 @@ class MessageSyncManager @Inject constructor(
                     medicineName = schedule.medicineName,
                     hour = schedule.hour,
                     minute = schedule.minute,
-                    status = status
+                    status = status,
+                    present = medicinePresence[slotNumber]
                 )
             )
         }

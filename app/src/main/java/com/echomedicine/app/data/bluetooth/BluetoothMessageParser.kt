@@ -22,6 +22,7 @@ object BluetoothMessageParser {
     private const val PREFIX_REALERT = "⚠️"
     private const val PREFIX_DAILY_RESET = "📅"
     private const val PREFIX_SCHEDULE_INFO = "📋"
+    private const val PREFIX_PRESENCE = "📦"
 
     private const val KEYWORD_TAKEN = "복용 완료!"
     private const val KEYWORD_SETTING = "설정 완료"
@@ -52,6 +53,7 @@ object BluetoothMessageParser {
             trimmed.startsWith(PREFIX_REALERT) -> parseRealertWarning(trimmed)
             trimmed.startsWith(PREFIX_DAILY_RESET) -> BluetoothMessage.DailyReset
             trimmed.startsWith(PREFIX_SCHEDULE_INFO) -> parseScheduleInfo(trimmed)
+            trimmed.startsWith(PREFIX_PRESENCE) -> parsePresence(trimmed)
             else -> BluetoothMessage.Unknown(rawMessage)
         }
     }
@@ -144,6 +146,8 @@ object BluetoothMessageParser {
         val slot = slotOneBased - 1 // 1-based → 0-based 변환
         val hour = hourStr.toIntOrNull() ?: return BluetoothMessage.Unknown(message)
         val minute = minuteStr.toIntOrNull() ?: return BluetoothMessage.Unknown(message)
+        // 상태: "약있음"이면 present=true, "완료"면 isDone=true (구버전 호환)
+        val present = statusStr.contains("약있음")
         val isDone = statusStr == "완료"
 
         return BluetoothMessage.ScheduleInfo(
@@ -151,7 +155,31 @@ object BluetoothMessageParser {
             name = name,
             hour = hour,
             minute = minute,
-            isDone = isDone
+            isDone = isDone,
+            present = present
+        )
+    }
+
+    /**
+     * "📦 칸N 약이름 있음/없음" 형식의 약 유무 메시지를 파싱한다.
+     * 칸 번호는 1-based → 0-based로 변환된다.
+     */
+    private fun parsePresence(message: String): BluetoothMessage {
+        val content = message.removePrefix(PREFIX_PRESENCE).trim()
+        // "칸N 약이름 있음" 또는 "칸N 약이름 없음"
+        val regex = Regex("""칸(\d+)\s+(.+?)\s+(있음|없음)""")
+        val matchResult = regex.find(content)
+            ?: return BluetoothMessage.Unknown(message)
+
+        val (slotStr, name, statusStr) = matchResult.destructured
+        val slotOneBased = slotStr.toIntOrNull() ?: return BluetoothMessage.Unknown(message)
+        val slot = slotOneBased - 1
+        val present = statusStr == "있음"
+
+        return BluetoothMessage.MedicinePresence(
+            slot = slot,
+            medicineName = name,
+            present = present
         )
     }
 

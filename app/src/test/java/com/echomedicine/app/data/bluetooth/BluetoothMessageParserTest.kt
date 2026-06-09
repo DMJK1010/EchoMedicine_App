@@ -133,6 +133,42 @@ class BluetoothMessageParserTest : DescribeSpec({
             }
         }
 
+        describe("MedicinePresence (📦)") {
+            it("should parse presence available message") {
+                val result = BluetoothMessageParser.parse("📦 칸1 혈압약 있음")
+
+                result.shouldBeInstanceOf<BluetoothMessage.MedicinePresence>()
+                result.slot shouldBe 0  // 1-based → 0-based
+                result.medicineName shouldBe "혈압약"
+                result.present shouldBe true
+            }
+
+            it("should parse presence empty message") {
+                val result = BluetoothMessageParser.parse("📦 칸3 비타민 없음")
+
+                result.shouldBeInstanceOf<BluetoothMessage.MedicinePresence>()
+                result.slot shouldBe 2
+                result.medicineName shouldBe "비타민"
+                result.present shouldBe false
+            }
+        }
+
+        describe("ScheduleInfo presence (📋 [약있음]/[약없음])") {
+            it("should parse schedule info with medicine present") {
+                val result = BluetoothMessageParser.parse("📋 칸1 혈압약 9:00 [약있음]")
+
+                result.shouldBeInstanceOf<BluetoothMessage.ScheduleInfo>()
+                result.present shouldBe true
+            }
+
+            it("should parse schedule info with medicine absent") {
+                val result = BluetoothMessageParser.parse("📋 칸2 당뇨약 13:00 [약없음]")
+
+                result.shouldBeInstanceOf<BluetoothMessage.ScheduleInfo>()
+                result.present shouldBe false
+            }
+        }
+
         describe("Unknown") {
             it("should return Unknown for unrecognized messages") {
                 val result = BluetoothMessageParser.parse("알 수 없는 메시지")

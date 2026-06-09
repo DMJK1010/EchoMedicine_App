@@ -178,6 +178,11 @@ class BluetoothForegroundService : Service() {
                 // 스케줄 정보는 Notification 없이 처리
             }
 
+            is BluetoothMessage.MedicinePresence -> {
+                Log.d(TAG, "Presence received: slot=${message.slot} present=${message.present}")
+                // 약 유무는 Notification 없이 MessageSyncManager에서 상태만 갱신
+            }
+
             is BluetoothMessage.Unknown -> {
                 Log.w(TAG, "Unknown message received: ${message.raw}")
                 // 인식 불가 메시지 — 무시

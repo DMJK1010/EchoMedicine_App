@@ -129,6 +129,24 @@ class DashboardFragment : Fragment() {
             findNavController().navigate(action)
         }
 
+        // 약통 약 유무 표시 (EMPTY 슬롯에서는 숨김)
+        if (slot.status == SlotStatus.EMPTY) {
+            cardBinding.tvPresence.visibility = View.GONE
+        } else {
+            cardBinding.tvPresence.visibility = View.VISIBLE
+            if (slot.present) {
+                cardBinding.tvPresence.text = getString(R.string.presence_available)
+                cardBinding.tvPresence.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.slot_status_taken)
+                )
+            } else {
+                cardBinding.tvPresence.text = getString(R.string.presence_empty)
+                cardBinding.tvPresence.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.slot_status_missed)
+                )
+            }
+        }
+
         when (slot.status) {
             SlotStatus.EMPTY -> {
                 cardBinding.tvMedicineName.text = getString(R.string.slot_empty)

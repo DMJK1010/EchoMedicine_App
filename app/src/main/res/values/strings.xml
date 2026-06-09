@@ -43,6 +43,8 @@
     <string name="status_empty">미배정</string>
     <string name="slot_status_description">복용 상태</string>
     <string name="connection_status_icon_description">연결 상태</string>
+    <string name="presence_available">💊 약 있음</string>
+    <string name="presence_empty">⚠️ 약 없음 (보충 필요)</string>
 
     <!-- Schedule Screen -->
     <string name="schedule_refresh">스케줄 조회</string>

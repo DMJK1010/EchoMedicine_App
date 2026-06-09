@@ -55,6 +55,19 @@
             app:layout_constraintStart_toStartOf="parent"
             tools:text="09:00" />
 
+        <!-- 약통 약 유무 (IR 센서) -->
+        <TextView
+            android:id="@+id/tv_presence"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@id/tv_schedule_time"
+            app:layout_constraintStart_toStartOf="parent"
+            tools:text="💊 약 있음"
+            tools:visibility="visible" />
+
         <!-- 상태 아이콘 -->
         <ImageView
             android:id="@+id/iv_status_icon"
@@ -89,7 +102,7 @@
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorPrimary"
             android:visibility="gone"
-            app:layout_constraintTop_toBottomOf="@id/tv_schedule_time"
+            app:layout_constraintTop_toBottomOf="@id/tv_presence"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:visibility="visible" />

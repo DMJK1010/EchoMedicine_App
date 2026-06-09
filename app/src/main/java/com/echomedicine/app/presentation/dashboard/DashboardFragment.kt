@@ -18,6 +18,7 @@ import com.echomedicine.app.domain.model.MedicineSlot
 import com.echomedicine.app.domain.model.SlotStatus
 import androidx.navigation.fragment.findNavController
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -77,7 +78,19 @@ class DashboardFragment : Fragment() {
                 launch { observeSlots() }
                 launch { observeConnectionState() }
                 launch { observeTakenRate() }
+                launch { periodicRefresh() }
             }
+        }
+    }
+
+    /**
+     * 화면이 떠 있는 동안 1분마다 Slot 상태를 갱신한다.
+     * 시간이 지나면서 WAITING → DUE → MISSED 전이가 화면에 반영되도록 한다.
+     */
+    private suspend fun periodicRefresh() {
+        while (true) {
+            delay(60_000L)
+            viewModel.refreshSlots()
         }
     }
 
@@ -142,6 +155,21 @@ class DashboardFragment : Fragment() {
                 cardBinding.tvStatusText.text = getString(R.string.status_waiting)
                 cardBinding.tvStatusText.setTextColor(
                     ContextCompat.getColor(requireContext(), R.color.slot_status_waiting)
+                )
+                cardBinding.tvEmptyHint.visibility = View.GONE
+                cardBinding.btnDetect.visibility = View.VISIBLE
+            }
+            SlotStatus.DUE -> {
+                cardBinding.tvMedicineName.text = slot.medicineName
+                cardBinding.tvScheduleTime.visibility = View.VISIBLE
+                cardBinding.tvScheduleTime.text = formatTime(slot.hour, slot.minute)
+                cardBinding.ivStatusIcon.setImageResource(R.drawable.ic_slot_waiting)
+                cardBinding.ivStatusIcon.setColorFilter(
+                    ContextCompat.getColor(requireContext(), R.color.slot_status_due)
+                )
+                cardBinding.tvStatusText.text = getString(R.string.status_due)
+                cardBinding.tvStatusText.setTextColor(
+                    ContextCompat.getColor(requireContext(), R.color.slot_status_due)
                 )
                 cardBinding.tvEmptyHint.visibility = View.GONE
                 cardBinding.btnDetect.visibility = View.VISIBLE

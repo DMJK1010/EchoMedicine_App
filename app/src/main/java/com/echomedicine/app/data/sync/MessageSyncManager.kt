@@ -49,6 +49,15 @@ class MessageSyncManager @Inject constructor(
     private val coroutineScope: CoroutineScope
 ) {
 
+    /**
+     * 현재 시각을 0시 기준 분(minute of day)으로 반환하는 제공자.
+     * 테스트에서 고정 시각을 주입할 수 있도록 분리했다.
+     */
+    var minutesOfDayProvider: () -> Int = {
+        val cal = java.util.Calendar.getInstance()
+        cal.get(java.util.Calendar.HOUR_OF_DAY) * 60 + cal.get(java.util.Calendar.MINUTE)
+    }
+
     companion object {
         private const val TAG = "MessageSyncManager"
 
@@ -57,6 +66,12 @@ class MessageSyncManager @Inject constructor(
 
         /** 기대하는 스케줄 슬롯 수 */
         private const val EXPECTED_SLOT_COUNT = 3
+
+        /** 복용 시간(DUE) 강조 윈도우 (분): 예정 시각부터 이 시간까지 "지금 복용" */
+        private const val DUE_WINDOW_MIN = 30
+
+        /** 미복용(MISSED) 자동 처리 기준 (분): 예정 시각 + 이 시간 경과 시 미복용 */
+        private const val MISSED_THRESHOLD_MIN = 60
     }
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
@@ -336,13 +351,17 @@ class MessageSyncManager @Inject constructor(
     /**
      * 캐시된 스케줄과 오늘의 복용 기록을 조합하여 Slot 상태를 갱신한다.
      *
+     * 현재 시각을 기준으로:
      * - 스케줄이 없는 Slot → EMPTY
-     * - 오늘 TAKEN 기록이 있는 Slot → TAKEN
-     * - 오늘 MISSED 기록이 있는 Slot → MISSED
-     * - 기록이 없는 활성 Slot → WAITING
+     * - 오늘 TAKEN 기록 → TAKEN
+     * - 오늘 MISSED 기록 → MISSED
+     * - 예정 시각 + MISSED_THRESHOLD_MIN 경과 & 미복용 → 자동 MISSED 기록 후 MISSED
+     * - 예정 시각 ~ +DUE_WINDOW_MIN → DUE (지금 복용)
+     * - 그 외(예정 시각 이전) → WAITING
      */
     private suspend fun refreshSlotStates() {
         val today = todayMillis()
+        val nowMinutes = minutesOfDayProvider()
         val slots = mutableListOf<MedicineSlot>()
 
         for (slotNumber in 0 until EXPECTED_SLOT_COUNT) {
@@ -350,23 +369,45 @@ class MessageSyncManager @Inject constructor(
 
             if (schedule == null || schedule.medicineName.isBlank()) {
                 slots.add(MedicineSlot(slotNumber, "", 0, 0, SlotStatus.EMPTY))
-            } else {
-                val record = historyRepository.getRecord(today, slotNumber)
-                val status = when {
-                    record != null && record.status == SlotStatus.TAKEN -> SlotStatus.TAKEN
-                    record != null && record.status == SlotStatus.MISSED -> SlotStatus.MISSED
-                    else -> SlotStatus.WAITING
-                }
-                slots.add(
-                    MedicineSlot(
+                continue
+            }
+
+            val record = historyRepository.getRecord(today, slotNumber)
+            val scheduledMinutes = schedule.hour * 60 + schedule.minute
+            val elapsed = nowMinutes - scheduledMinutes // 예정 시각 대비 경과 분
+
+            val status = when {
+                // 이미 기록된 상태가 우선
+                record != null && record.status == SlotStatus.TAKEN -> SlotStatus.TAKEN
+                record != null && record.status == SlotStatus.MISSED -> SlotStatus.MISSED
+                // 예정 시각 + 1시간 경과 & 미복용 → 자동 미복용 기록
+                elapsed >= MISSED_THRESHOLD_MIN -> {
+                    historyRepository.recordMissed(
                         slotNumber = schedule.slotNumber,
                         medicineName = schedule.medicineName,
-                        hour = schedule.hour,
-                        minute = schedule.minute,
-                        status = status
+                        scheduledHour = schedule.hour,
+                        scheduledMinute = schedule.minute
                     )
-                )
+                    Log.d(TAG, "Auto-recorded MISSED for slot $slotNumber (elapsed ${elapsed}min)")
+                    SlotStatus.MISSED
+                }
+                // 예정 시각 ~ +30분 → 복용 시간
+                elapsed in 0 until DUE_WINDOW_MIN -> SlotStatus.DUE
+                // 예정 시각 30분~1시간 사이도 아직 복용 가능하므로 DUE 유지
+                elapsed in DUE_WINDOW_MIN until MISSED_THRESHOLD_MIN -> SlotStatus.DUE
+                // 예정 시각 이전 → 대기
+                else -> SlotStatus.WAITING
             }
+
+            slots.add(
+                MedicineSlot(
+                    slotNumber = schedule.slotNumber,
+                    medicineName = schedule.medicineName,
+                    hour = schedule.hour,
+                    minute = schedule.minute,
+                    status = status
+                )
+            )
         }
 
         _slotStates.value = slots

@@ -37,6 +37,7 @@
     <string name="slot_empty">비어 있음</string>
     <string name="empty_slot_hint">스케줄 설정에서 약을 등록하세요</string>
     <string name="status_waiting">대기 중</string>
+    <string name="status_due">지금 복용하세요!</string>
     <string name="status_taken">복용 완료</string>
     <string name="status_missed">미복용</string>
     <string name="status_empty">미배정</string>

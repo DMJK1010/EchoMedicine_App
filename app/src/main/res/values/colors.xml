@@ -20,6 +20,7 @@
 
     <!-- Slot Status Colors -->
     <color name="slot_status_waiting">#F59E0B</color>
+    <color name="slot_status_due">#2563EB</color>
     <color name="slot_status_taken">#10B981</color>
     <color name="slot_status_missed">#EF4444</color>
     <color name="slot_status_empty">#9CA3AF</color>

@@ -320,6 +320,8 @@ class MessageSyncManagerTest : DescribeSpec({
                     alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
+                // 예정 시각(09:00) 이전인 08:00으로 고정 → WAITING 기대
+                messageSyncManager.minutesOfDayProvider = { 8 * 60 }
 
                 messageSyncManager.start()
                 advanceUntilIdle()
@@ -355,6 +357,8 @@ class MessageSyncManagerTest : DescribeSpec({
                     alarmScheduler = alarmScheduler,
                     coroutineScope = this
                 )
+                // 예정 시각(09:00) 이전인 08:00으로 고정 (자동 MISSED 방지)
+                messageSyncManager.minutesOfDayProvider = { 8 * 60 }
 
                 messageSyncManager.start()
                 advanceUntilIdle()

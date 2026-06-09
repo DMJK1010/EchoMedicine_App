@@ -23,6 +23,7 @@ kotest = "5.8.0"
 mockk = "1.13.9"
 turbine = "1.0.0"
 junit = "4.13.2"
+junit-vintage = "5.10.1"
 espresso = "3.5.1"
 test-runner = "1.5.2"
 test-core = "1.5.0"
@@ -89,6 +90,7 @@ turbine = { group = "app.cash.turbine", name = "turbine", version.ref = "turbine
 
 # Testing - JUnit
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+junit-vintage-engine = { group = "org.junit.vintage", name = "junit-vintage-engine", version.ref = "junit-vintage" }
 
 # Testing - Android
 test-runner = { group = "androidx.test", name = "runner", version.ref = "test-runner" }

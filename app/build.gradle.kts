@@ -111,6 +111,7 @@ dependencies {
 
     // Unit Testing
     testImplementation(libs.junit)
+    testRuntimeOnly(libs.junit.vintage.engine)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.property)
@@ -119,6 +120,7 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.robolectric)
     testImplementation(libs.room.testing)
+    testImplementation(libs.test.core)
 
     // Android Instrumented Testing
     androidTestImplementation(libs.test.runner)

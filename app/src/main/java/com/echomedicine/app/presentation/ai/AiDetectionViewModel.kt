@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.echomedicine.app.data.sync.MessageSyncManager
+import com.echomedicine.app.domain.repository.BluetoothRepository
 import com.echomedicine.app.domain.repository.HistoryRepository
 import com.echomedicine.app.domain.repository.ScheduleRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,7 +21,8 @@ import javax.inject.Inject
 class AiDetectionViewModel @Inject constructor(
     private val scheduleRepository: ScheduleRepository,
     private val historyRepository: HistoryRepository,
-    private val messageSyncManager: MessageSyncManager
+    private val messageSyncManager: MessageSyncManager,
+    private val bluetoothRepository: BluetoothRepository
 ) : ViewModel() {
 
     private val _isDetected = MutableStateFlow(false)
@@ -52,6 +54,8 @@ class AiDetectionViewModel @Inject constructor(
                         )
                     }
                     _isDetected.value = true
+                    // 보관함에 복용 완료를 알려 해당 칸을 즉시 닫는다
+                    bluetoothRepository.send("DONE:$slotNumber\n")
                     // 홈 화면(대시보드)의 복용 상태가 즉시 갱신되도록 요청
                     messageSyncManager.requestRefresh()
                 }
